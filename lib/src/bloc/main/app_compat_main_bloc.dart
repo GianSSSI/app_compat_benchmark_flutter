@@ -8,6 +8,7 @@ import 'package:app_compat_benchmark_flutter/src/bloc/performance/performance_bl
 import 'package:app_compat_benchmark_flutter/src/models/benchmark_handles.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 
 part 'app_compat_main_event.dart';
 part 'app_compat_main_state.dart';
@@ -63,6 +64,9 @@ class AppCompatMainBloc extends Bloc<AppCompatMainEvent, AppCompatMainState> {
 
   void _listenToChildren() {
     deviceSub = deviceBloc.stream.listen((state) {
+      debugPrint(
+        "BNCH [DeviceBloc] status=${state.status} msg=${state.message}",
+      );
       if (state.status == DeviceAndOsStatus.scored) {
         final score = DeviceAndOsDomainScore(
           domainScore: state.deviceAndOSScore ?? 0,
@@ -84,6 +88,7 @@ class AppCompatMainBloc extends Bloc<AppCompatMainEvent, AppCompatMainState> {
     });
 
     featureSub = featureBloc.stream.listen((state) {
+      debugPrint("BNCH [featureBloc] status=${state}");
       if (state is FeatureSupportScored) {
         add(
           FeatureSupportFinished(
@@ -95,6 +100,7 @@ class AppCompatMainBloc extends Bloc<AppCompatMainEvent, AppCompatMainState> {
     });
 
     performanceSub = performanceBloc.stream.listen((state) {
+      debugPrint("BNCH [performanceBloc] status=${state}");
       if (state is BenchmarkCompleted) {
         final scorer = BenchmarkScorer();
         final stepScores = state.results.map(scorer.scoreStep).toList();
