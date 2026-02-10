@@ -85,9 +85,7 @@ class DeviceAndOsBloc extends Bloc<DeviceAndOsEvent, DeviceAndOsState> {
         final cpuScore = deviceAndOsScorer.calculateCpuScore(
           arch: archScore,
           cores: deviceAndOsScorer.scoreCpuCores(cores: deviceInfo.cpuCores),
-          freq: deviceAndOsScorer.scoreCpuFrequency(
-            deviceInfo.cpuFrequencyMhz.toInt(),
-          ),
+          freq: deviceAndOsScorer.scoreCpuFrequency(deviceInfo.cpuFrequencyMhz),
         );
 
         // RAM & Storage Score
