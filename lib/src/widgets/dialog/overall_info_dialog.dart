@@ -1,5 +1,5 @@
+import 'package:app_compat_benchmark_core/app_compat_benchmark_core.dart';
 import 'package:flutter/material.dart';
-import 'package:qc_qcmerchant/pages/app_compatibilty/models/overall_benchmark_score.dart';
 
 class OverallInfoDialog extends StatelessWidget {
   final OverallBenchmarkScore overallBenchmarkScore;

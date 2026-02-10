@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:app_compat_benchmark_core/app_compat_benchmark_core.dart';
-import 'package:app_compat_benchmark_flutter/src/bloc/device&os/device_and_os_bloc.dart';
+import 'package:app_compat_benchmark_flutter/src/bloc/device_and_os/device_and_os_bloc.dart';
 import 'package:app_compat_benchmark_flutter/src/bloc/feature_support/feature_support_bloc.dart';
 import 'package:app_compat_benchmark_flutter/src/bloc/internet/internet_bloc.dart';
 import 'package:app_compat_benchmark_flutter/src/bloc/performance/performance_bloc.dart';

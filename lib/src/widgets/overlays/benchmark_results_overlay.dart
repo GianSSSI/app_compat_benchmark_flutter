@@ -10,6 +10,9 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
 class BenchmarkResultOverlay extends StatefulWidget {
+  final String loadingAnimationAsset;
+  final String compatibleAnimationAsset;
+  final String incompatibleAnimationAsset;
   final DeviceAndOsDomainScore deviceScore;
   final DeviceInformation deviceInformation;
   final List<FeatureSuppResult> featureResult;
@@ -29,6 +32,9 @@ class BenchmarkResultOverlay extends StatefulWidget {
     required this.overallBenchmarkScore,
     required this.deviceInformation,
     required this.featureResult,
+    required this.loadingAnimationAsset,
+    required this.compatibleAnimationAsset,
+    required this.incompatibleAnimationAsset,
     this.hasHardBlocker = false,
     this.overallScoreRequirementsSet,
   });
@@ -51,11 +57,14 @@ class _BenchmarkResultOverlayState extends State<BenchmarkResultOverlay>
     false,
   ]; // DomainResultCards
   bool _internetCardVisible = false; // Internet Speed card
-  String _currentAnimation = 'assets/animations/loading_results.json';
+  //assets/animations/loading_results.json
+
+  late String _currentAnimation;
 
   @override
   void initState() {
     super.initState();
+    _currentAnimation = widget.loadingAnimationAsset;
     _runAnimations();
   }
 
@@ -112,11 +121,12 @@ class _BenchmarkResultOverlayState extends State<BenchmarkResultOverlay>
         if (mounted) {
           setState(() {
             _visible[i] = true;
-
+            // ? 'assets/animations/result_invalid.json'
+            //     : 'assets/animations/result_success.json';
             if (i == _visible.length - 1) {
               _currentAnimation = widget.hasHardBlocker
-                  ? 'assets/animations/result_invalid.json'
-                  : 'assets/animations/result_success.json';
+                  ? widget.incompatibleAnimationAsset
+                  : widget.compatibleAnimationAsset;
 
               // Delay 500ms then show Internet Speed card
               Timer(const Duration(milliseconds: 500), () {

@@ -8,7 +8,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class BenchmarkPage extends StatefulWidget {
   final DomainWeightsSet? domainWeightsSet;
-  const BenchmarkPage({super.key, this.domainWeightsSet});
+  final String loadingAnimationAsset;
+  final String compatibleAnimationAsset;
+  final String incompatibleAnimationAsset;
+  const BenchmarkPage({
+    super.key,
+    this.domainWeightsSet,
+    required this.loadingAnimationAsset,
+    required this.compatibleAnimationAsset,
+    required this.incompatibleAnimationAsset,
+  });
 
   @override
   State<BenchmarkPage> createState() => _BenchmarkPageState();
@@ -316,6 +325,11 @@ class _BenchmarkPageState extends State<BenchmarkPage>
                         deviceInformation: state.deviceInfo!,
                         featureResult: state.featureResults!,
                         hasHardBlocker: state.incompatible,
+                        loadingAnimationAsset: widget.loadingAnimationAsset,
+                        compatibleAnimationAsset:
+                            widget.compatibleAnimationAsset,
+                        incompatibleAnimationAsset:
+                            widget.compatibleAnimationAsset,
                       ),
                     ),
                   ),

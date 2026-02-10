@@ -1,6 +1,5 @@
+import 'package:app_compat_benchmark_core/app_compat_benchmark_core.dart';
 import 'package:flutter/material.dart';
-import 'package:qc_qcmerchant/pages/app_compatibilty/utils/feature_support/feature_supp_result.dart';
-import 'package:qc_qcmerchant/pages/app_compatibilty/utils/feature_support/scorer/feature_support_score.dart';
 
 class FeatureSupportInfoDialog extends StatefulWidget {
   final FeatureSupportScore featureSupportScore;
