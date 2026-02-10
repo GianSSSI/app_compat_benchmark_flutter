@@ -58,6 +58,7 @@ class _BenchmarkPageState extends State<BenchmarkPage>
       internetBloc: _internetBloc,
       domainScorer: _domainScorer,
     );
+    _domainScorer = DomainScorer();
   }
 
   @override
