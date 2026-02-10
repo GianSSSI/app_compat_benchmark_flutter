@@ -44,13 +44,19 @@ class _BenchmarkPageState extends State<BenchmarkPage>
   @override
   void initState() {
     super.initState();
+
+    _domainScorer = DomainScorer();
+
     _deviceBloc = DeviceAndOsBloc(deviceAndOsScorer: _deviceAndOsScorer);
+
     _featureBloc = FeatureSupportBloc(
       runner: _featureCheckerRunner,
       scorer: _featureSupportScorer,
     );
+
     _performanceBloc = PerformanceBloc(_benchmarkRunner);
     _internetBloc = InternetBloc(_internetCheckerRunner);
+
     _appCompatMainBloc = AppCompatMainBloc(
       deviceBloc: _deviceBloc,
       featureBloc: _featureBloc,
@@ -58,7 +64,6 @@ class _BenchmarkPageState extends State<BenchmarkPage>
       internetBloc: _internetBloc,
       domainScorer: _domainScorer,
     );
-    _domainScorer = DomainScorer();
   }
 
   @override
@@ -330,7 +335,7 @@ class _BenchmarkPageState extends State<BenchmarkPage>
                         compatibleAnimationAsset:
                             widget.compatibleAnimationAsset,
                         incompatibleAnimationAsset:
-                            widget.compatibleAnimationAsset,
+                            widget.incompatibleAnimationAsset,
                       ),
                     ),
                   ),
