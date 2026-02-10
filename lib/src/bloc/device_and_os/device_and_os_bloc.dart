@@ -14,7 +14,7 @@ class DeviceAndOsBloc extends Bloc<DeviceAndOsEvent, DeviceAndOsState> {
       try {
         final deviceInfo = DeviceAndOsRunner();
         final deviceInfoResult = await deviceInfo.getDeviceInformation();
-        add(ScoreDevicenOS(deviceInfo: deviceInfoResult));
+        // add(ScoreDevicenOS(deviceInfo: deviceInfoResult));
         emit(
           state.copyWith(
             status: DeviceAndOsStatus.success,
