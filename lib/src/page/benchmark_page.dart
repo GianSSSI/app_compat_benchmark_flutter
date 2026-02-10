@@ -91,6 +91,7 @@ class _BenchmarkPageState extends State<BenchmarkPage>
         appBar: AppBar(title: const Text('Device Benchmark')),
         body: BlocConsumer<AppCompatMainBloc, AppCompatMainState>(
           listener: (context, state) {
+            debugPrint("App Compat STATE CHANGED: ${state.stage}");
             if (state.stage == BenchmarkStage.idle) {
               debugPrint("App Compat Main IDLE");
             }
