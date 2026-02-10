@@ -11,7 +11,6 @@ dependencies:
   app_compat_benchmark_core:
     git:
       url: https://github.com/GianSSSI/app_compat_benchmark_core
-      ref: 254c7d7bca64380c60ff1a5a8f5456666a60ae94
   equatable: ^2.0.8
   flutter:
     sdk: flutter
