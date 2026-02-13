@@ -11,18 +11,22 @@ enum BenchmarkStage {
   error,
 }
 
-class AppCompatMainState {
+class AppCompatMainState extends Equatable {
   final BenchmarkStage stage;
 
   final DeviceAndOsDomainScore? deviceScore;
   final FeatureSupportScore? featureScore;
   final PerformanceDomainScore? performanceScore;
   final InternetCheckResult? internetResult;
+
   final List<FeatureSuppResult>? featureResults;
   final DeviceInformation? deviceInfo;
+
   final OverallBenchmarkScore? overallBenchmarkScore;
+
   final String? message;
   final bool incompatible;
+
   const AppCompatMainState({
     this.stage = BenchmarkStage.idle,
     this.deviceScore,
@@ -43,7 +47,7 @@ class AppCompatMainState {
     PerformanceDomainScore? performanceScore,
     InternetCheckResult? internetResult,
     DeviceInformation? deviceInfo,
-    final List<FeatureSuppResult>? featureResults,
+    List<FeatureSuppResult>? featureResults,
     OverallBenchmarkScore? overallBenchmarkScore,
     String? message,
     bool? incompatible,
@@ -55,11 +59,25 @@ class AppCompatMainState {
       performanceScore: performanceScore ?? this.performanceScore,
       internetResult: internetResult ?? this.internetResult,
       deviceInfo: deviceInfo ?? this.deviceInfo,
+      featureResults: featureResults ?? this.featureResults,
       overallBenchmarkScore:
           overallBenchmarkScore ?? this.overallBenchmarkScore,
       message: message ?? this.message,
       incompatible: incompatible ?? this.incompatible,
-      featureResults: featureResults ?? this.featureResults,
     );
   }
+
+  @override
+  List<Object?> get props => [
+    stage,
+    deviceScore,
+    featureScore,
+    performanceScore,
+    internetResult,
+    featureResults,
+    deviceInfo,
+    overallBenchmarkScore,
+    message,
+    incompatible,
+  ];
 }

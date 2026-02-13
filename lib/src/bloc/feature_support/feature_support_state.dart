@@ -4,30 +4,17 @@ sealed class FeatureSupportState extends Equatable {
   const FeatureSupportState();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 final class FeatureSupportInitial extends FeatureSupportState {}
 
 final class FeatureSupportChecking extends FeatureSupportState {
   final FeatureStepType currentStep;
-
   const FeatureSupportChecking(this.currentStep);
 
   @override
-  List<Object> get props => [currentStep];
-}
-
-final class FeatureSupportComplete extends FeatureSupportState {
-  final List<FeatureSuppResult> results;
-  final bool hasHardBlocker;
-  const FeatureSupportComplete({
-    required this.results,
-    this.hasHardBlocker = false,
-  });
-
-  @override
-  List<Object> get props => [results];
+  List<Object?> get props => [currentStep];
 }
 
 final class FeatureSupportError extends FeatureSupportState {
@@ -37,10 +24,10 @@ final class FeatureSupportError extends FeatureSupportState {
   const FeatureSupportError(this.message, this.currentStep);
 
   @override
-  List<Object> get props => [message];
+  List<Object?> get props => [message, currentStep];
 }
 
-class FeatureSupportScored extends FeatureSupportState {
+final class FeatureSupportScored extends FeatureSupportState {
   final List<FeatureSuppResult> results;
   final FeatureSupportScore score;
   final bool hasHardBlocker;
@@ -48,5 +35,5 @@ class FeatureSupportScored extends FeatureSupportState {
   const FeatureSupportScored(this.results, this.score, this.hasHardBlocker);
 
   @override
-  List<Object> get props => [results, score];
+  List<Object?> get props => [results, score, hasHardBlocker];
 }

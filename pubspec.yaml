@@ -9,8 +9,8 @@ environment:
 
 dependencies:
   app_compat_benchmark_core:
-    git:
-      url: https://github.com/GianSSSI/app_compat_benchmark_core
+    path: C:\Users\63998\Documents\sandman\app_compat_benchmark_core
+  dio: ^5.9.1
   equatable: ^2.0.8
   flutter:
     sdk: flutter

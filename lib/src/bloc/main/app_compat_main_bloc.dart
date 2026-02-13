@@ -5,10 +5,11 @@ import 'package:app_compat_benchmark_flutter/src/bloc/device_and_os/device_and_o
 import 'package:app_compat_benchmark_flutter/src/bloc/feature_support/feature_support_bloc.dart';
 import 'package:app_compat_benchmark_flutter/src/bloc/internet/internet_bloc.dart';
 import 'package:app_compat_benchmark_flutter/src/bloc/performance/performance_bloc.dart';
+import 'package:app_compat_benchmark_flutter/src/helpers/required_steps.dart';
 import 'package:app_compat_benchmark_flutter/src/models/benchmark_handles.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 part 'app_compat_main_event.dart';
 part 'app_compat_main_state.dart';
@@ -19,13 +20,13 @@ class AppCompatMainBloc extends Bloc<AppCompatMainEvent, AppCompatMainState> {
   final PerformanceBloc performanceBloc;
   final InternetBloc internetBloc;
 
+  // NEW: built from config
   final DomainScorer domainScorer;
+  final BenchmarkScorer performanceScorer;
 
-  final PerformanceRequirementsSet? performanceRequirementsSet;
-  final DeviceAndOsRequirementsSet? deviceAndOsRequirementsSet;
-  final OverallScoreRequirementsSet? overallScoreRequirementsSet;
-  final FeatureSupportRequirementsSet? featureSupportRequirementsSet;
-  final DomainWeightsSet? domainWeights;
+  // NEW: config sets (merged remote+defaults)
+  final MainDomainScoresSet mainDomainScores;
+  final FeatureSupportRequirementsSet featureSupportRequirements;
 
   late final StreamSubscription deviceSub;
   late final StreamSubscription featureSub;
@@ -35,98 +36,90 @@ class AppCompatMainBloc extends Bloc<AppCompatMainEvent, AppCompatMainState> {
   BenchmarkHandles? _handles;
 
   AppCompatMainBloc({
-    this.featureSupportRequirementsSet,
-    this.deviceAndOsRequirementsSet,
-    this.performanceRequirementsSet,
-    this.domainWeights,
-    this.overallScoreRequirementsSet,
     required this.deviceBloc,
     required this.featureBloc,
     required this.performanceBloc,
     required this.internetBloc,
+
     required this.domainScorer,
+    required this.performanceScorer,
+
+    required this.mainDomainScores,
+    required this.featureSupportRequirements,
   }) : super(const AppCompatMainState()) {
     on<StartFullBenchmark>(_start);
     on<DeviceAndOsFinished>(_onDeviceDone);
     on<FeatureSupportFinished>(_onFeatureDone);
     on<PerformanceFinished>(_onPerformanceDone);
     on<InternetFinished>(_onInternetDone);
+
     _listenToChildren();
   }
 
-  OverallScoreRequirementsSet get scoreThresholds =>
-      overallScoreRequirementsSet ??
-      OverallScoreRequirementsDefaultsBundle.defaults;
-
-  FeatureSupportRequirementsSet get _featSUppRequirements =>
-      featureSupportRequirementsSet ??
-      FeatureSupportRequirementsDefaultsBundle.defaults;
-
   void _listenToChildren() {
-    deviceSub = deviceBloc.stream.listen((state) {
-      debugPrint(
-        "BNCH [DeviceBloc] status=${state.status} msg=${state.message}",
-      );
-      if (state.status == DeviceAndOsStatus.scored) {
+    deviceSub = deviceBloc.stream.listen((s) {
+      debugPrint("BNCH [DeviceBloc] status=${s.status} msg=${s.message}");
+      if (s.status == DeviceAndOsStatus.scored) {
         final score = DeviceAndOsDomainScore(
-          domainScore: state.deviceAndOSScore ?? 0,
-          osScore: state.osScore ?? 0,
-          cpuScore: state.cpuScore ?? 0,
-          ramStorageScore: state.ramStorageScore ?? 0,
-          incompatible: state.incompatible,
-          results: state.results,
+          domainScore: s.deviceAndOSScore ?? 0,
+          osScore: s.osScore ?? 0,
+          cpuScore: s.cpuScore ?? 0,
+          ramStorageScore: s.ramStorageScore ?? 0,
+          incompatible: s.incompatible,
+          results: s.results,
         );
 
         add(
           DeviceAndOsFinished(
             score: score,
-            incompatible: state.incompatible,
-            deviceInformation: state.deviceInfo!,
+            incompatible: s.incompatible,
+            deviceInformation: s.deviceInfo!,
           ),
         );
       }
     });
 
-    featureSub = featureBloc.stream.listen((state) {
-      debugPrint("BNCH [featureBloc] status=${state}");
-      if (state is FeatureSupportScored) {
+    featureSub = featureBloc.stream.listen((s) {
+      debugPrint("BNCH [featureBloc] state=$s");
+      if (s is FeatureSupportScored) {
         add(
           FeatureSupportFinished(
-            score: state.score,
-            feautreSupportResults: state.results,
+            score: s.score,
+            feautreSupportResults: s.results,
+            incompatible: s.score.isBlocked, // ✅ use scorer decision
           ),
         );
       }
     });
 
-    performanceSub = performanceBloc.stream.listen((state) {
-      debugPrint("BNCH [performanceBloc] status=${state}");
-      if (state is BenchmarkCompleted) {
-        final scorer = BenchmarkScorer();
-        final stepScores = state.results.map(scorer.scoreStep).toList();
-        final overall = scorer.scoreOverall(state.results);
+    performanceSub = performanceBloc.stream.listen((s) {
+      debugPrint("BNCH [performanceBloc] state=$s");
+      if (s is BenchmarkCompleted) {
+        // ✅ Use injected performanceScorer (config-based)
+        final stepScores = s.results.map(performanceScorer.scoreStep).toList();
+        final overall = performanceScorer.scoreOverall(s.results);
 
         final score = PerformanceDomainScore(
           stepScores: stepScores,
           overallScore: overall,
           overallRating: overall.rating,
-          results: state.results,
+          results: s.results,
         );
 
         add(PerformanceFinished(score));
       }
     });
 
-    internetSub = internetBloc.stream.listen((state) {
-      if (state is InternetCheckSuccess) {
-        add(InternetFinished(state.result));
+    internetSub = internetBloc.stream.listen((s) {
+      if (s is InternetCheckSuccess) {
+        add(InternetFinished(s.result));
       }
     });
   }
 
   void _start(StartFullBenchmark event, Emitter<AppCompatMainState> emit) {
     _handles = event.handles;
-    emit(state.copyWith(stage: BenchmarkStage.runningDevice));
+    emit(state.copyWith(stage: BenchmarkStage.runningDevice, message: null));
     deviceBloc.add(GetDeviceInformation());
   }
 
@@ -139,16 +132,18 @@ class AppCompatMainBloc extends Bloc<AppCompatMainEvent, AppCompatMainState> {
         deviceScore: event.score,
         deviceInfo: event.deviceInformation,
         stage: BenchmarkStage.runningFeatures,
-        incompatible: event.incompatible, // mark if device has issues
+        incompatible: event.incompatible,
         message: event.incompatible ? "Device not fully compatible" : null,
       ),
     );
 
+    // ✅ NEW: use typed RequiredFeatures -> steps list
+    final requiredSteps = requiredStepsFromConfig(
+      featureSupportRequirements.requiredFeatures,
+    );
+
     featureBloc.add(
-      StartFeatureSupportCheck(
-        featureRequirements: _featSUppRequirements.requiredFeatures.value.keys
-            .toList(),
-      ),
+      StartFeatureSupportCheck(featureRequirements: requiredSteps),
     );
   }
 
@@ -156,23 +151,18 @@ class AppCompatMainBloc extends Bloc<AppCompatMainEvent, AppCompatMainState> {
     FeatureSupportFinished event,
     Emitter<AppCompatMainState> emit,
   ) {
-    if (event.incompatible) {
-      emit(
-        state.copyWith(
-          stage: BenchmarkStage.incompatible,
-          incompatible: true,
-          message: "Required features are not supported on this device",
-          featureResults: event.feautreSupportResults,
-        ),
-      );
-      return;
-    }
+    // ✅ DO NOT STOP — just record blocker and proceed
+    final blocked = event.incompatible;
 
     emit(
       state.copyWith(
         featureScore: event.score,
-        stage: BenchmarkStage.runningPerformance,
         featureResults: event.feautreSupportResults,
+        incompatible: state.incompatible || blocked, // accumulate blockers
+        message: blocked
+            ? "Some required features are not supported (continuing benchmark)"
+            : state.message,
+        stage: BenchmarkStage.runningPerformance,
       ),
     );
 
@@ -219,10 +209,11 @@ class AppCompatMainBloc extends Bloc<AppCompatMainEvent, AppCompatMainState> {
   }
 
   @override
-  Future<void> close() {
-    deviceSub.cancel();
-    featureSub.cancel();
-    performanceSub.cancel();
+  Future<void> close() async {
+    await deviceSub.cancel();
+    await featureSub.cancel();
+    await performanceSub.cancel();
+    await internetSub.cancel();
     return super.close();
   }
 }
