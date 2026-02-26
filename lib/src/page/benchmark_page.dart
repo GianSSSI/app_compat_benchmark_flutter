@@ -36,7 +36,7 @@ class BenchmarkPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dio = createDioClient();
-    final api = BenchmarkConfigApi(dio: dio, baseUrl: configUrl);
+    final api = BenchmarkConfigApi(dio: dio, configUrl: configUrl);
     final repo = BenchmarkConfigRepository(api);
 
     return BlocProvider(

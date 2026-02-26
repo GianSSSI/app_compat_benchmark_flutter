@@ -2,14 +2,12 @@ import 'package:dio/dio.dart';
 
 class BenchmarkConfigApi {
   final Dio dio;
-  final String baseUrl;
+  final String configUrl;
 
-  BenchmarkConfigApi({required this.dio, required this.baseUrl});
+  BenchmarkConfigApi({required this.dio, required this.configUrl});
 
   Future<Map<String, dynamic>> fetchConfig() async {
-    final res = await dio.get(
-      '$baseUrl/index.php/qc_merchant_api/benchmark/fetch_config',
-    );
+    final res = await dio.get(configUrl);
 
     final data = res.data;
 
