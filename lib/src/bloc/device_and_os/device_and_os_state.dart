@@ -15,12 +15,12 @@ class DeviceAndOsState extends Equatable {
   /// Final weighted Device & OS score (0–100)
   final double? deviceAndOSScore;
 
-  /// Sub-scores (useful for UI / debugging)
+  /// Subscores
   final double? osScore;
   final double? cpuScore;
   final double? ramStorageScore;
 
-  /// Hard-fail compatibility flag
+  /// Hard fail
   final bool incompatible;
 
   final DeviceAndOsStatus status;

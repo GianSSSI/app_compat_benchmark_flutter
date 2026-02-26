@@ -2,12 +2,13 @@ import 'package:dio/dio.dart';
 
 class BenchmarkConfigApi {
   final Dio dio;
+  final String baseUrl;
 
-  BenchmarkConfigApi(this.dio);
+  BenchmarkConfigApi({required this.dio, required this.baseUrl});
 
   Future<Map<String, dynamic>> fetchConfig() async {
     final res = await dio.get(
-      'https://uqcmerchantqalb.unifysyscontrol.com/index.php/qc_merchant_api/benchmark/fetch_config',
+      '$baseUrl/index.php/qc_merchant_api/benchmark/fetch_config',
     );
 
     final data = res.data;
@@ -16,7 +17,6 @@ class BenchmarkConfigApi {
       return Map<String, dynamic>.from(data);
     }
 
-    // sometimes backends return a stringified json
     if (data is String) {
       throw FormatException(
         'Expected JSON map but got String. Ensure server returns JSON object.',

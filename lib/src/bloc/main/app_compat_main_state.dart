@@ -27,6 +27,10 @@ class AppCompatMainState extends Equatable {
   final String? message;
   final bool incompatible;
 
+  final String? errorMessage;
+  final String? errorStackTrace;
+  final BenchmarkStage? failedStage;
+
   const AppCompatMainState({
     this.stage = BenchmarkStage.idle,
     this.deviceScore,
@@ -38,6 +42,9 @@ class AppCompatMainState extends Equatable {
     this.deviceInfo,
     this.incompatible = false,
     this.featureResults,
+    this.errorMessage,
+    this.errorStackTrace,
+    this.failedStage,
   });
 
   AppCompatMainState copyWith({
@@ -51,6 +58,9 @@ class AppCompatMainState extends Equatable {
     OverallBenchmarkScore? overallBenchmarkScore,
     String? message,
     bool? incompatible,
+    String? errorMessage,
+    String? errorStackTrace,
+    BenchmarkStage? failedStage,
   }) {
     return AppCompatMainState(
       stage: stage ?? this.stage,
@@ -64,9 +74,14 @@ class AppCompatMainState extends Equatable {
           overallBenchmarkScore ?? this.overallBenchmarkScore,
       message: message ?? this.message,
       incompatible: incompatible ?? this.incompatible,
+      errorMessage: errorMessage ?? this.errorMessage,
+      errorStackTrace: errorStackTrace ?? this.errorStackTrace,
+      failedStage: failedStage ?? this.failedStage,
     );
   }
 
+  AppCompatMainState cleared() =>
+      const AppCompatMainState(stage: BenchmarkStage.idle);
   @override
   List<Object?> get props => [
     stage,

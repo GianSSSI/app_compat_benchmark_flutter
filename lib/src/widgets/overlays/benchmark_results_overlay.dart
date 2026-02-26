@@ -13,6 +13,7 @@ class BenchmarkResultOverlay extends StatefulWidget {
   final String loadingAnimationAsset;
   final String compatibleAnimationAsset;
   final String incompatibleAnimationAsset;
+  final String limitedAnimationAsset;
 
   final DeviceAndOsDomainScore deviceScore;
   final DeviceInformation deviceInformation;
@@ -26,7 +27,6 @@ class BenchmarkResultOverlay extends StatefulWidget {
 
   final bool hasHardBlocker;
 
-  // ✅ NEW: overall thresholds now come from mainDomainScores.thresholds
   final MainDomainScoresSet? mainDomainScoresSet;
 
   const BenchmarkResultOverlay({
@@ -41,6 +41,7 @@ class BenchmarkResultOverlay extends StatefulWidget {
     required this.loadingAnimationAsset,
     required this.compatibleAnimationAsset,
     required this.incompatibleAnimationAsset,
+    required this.limitedAnimationAsset,
     this.hasHardBlocker = false,
     this.mainDomainScoresSet,
   });
@@ -48,7 +49,6 @@ class BenchmarkResultOverlay extends StatefulWidget {
   @override
   State<BenchmarkResultOverlay> createState() => _BenchmarkResultOverlayState();
 
-  // ✅ fallback to defaults (new system)
   MainDomainScoresSet get main =>
       mainDomainScoresSet ?? MainDomainScoresDefaults();
 }
@@ -105,6 +105,19 @@ class _BenchmarkResultOverlayState extends State<BenchmarkResultOverlay>
     );
   }
 
+  String _overallResultLottiePicker() {
+    if (widget.hasHardBlocker) return widget.incompatibleAnimationAsset;
+
+    final score = widget.overallBenchmarkScore.score;
+    final t = widget.main.thresholds; // TieredReq (optimal/supported/limited)
+
+    if (score >= t.optimal) return widget.compatibleAnimationAsset;
+    if (score >= t.supported) return widget.compatibleAnimationAsset;
+    if (score >= t.limited) return widget.limitedAnimationAsset;
+
+    return widget.incompatibleAnimationAsset;
+  }
+
   void _runAnimations() {
     for (int i = 0; i < _visible.length; i++) {
       Timer(Duration(milliseconds: 500 * i), () {
@@ -114,9 +127,7 @@ class _BenchmarkResultOverlayState extends State<BenchmarkResultOverlay>
           _visible[i] = true;
 
           if (i == _visible.length - 1) {
-            _currentAnimation = widget.hasHardBlocker
-                ? widget.incompatibleAnimationAsset
-                : widget.compatibleAnimationAsset;
+            _currentAnimation = _overallResultLottiePicker();
 
             Timer(const Duration(milliseconds: 500), () {
               if (!mounted) return;

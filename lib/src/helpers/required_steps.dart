@@ -5,7 +5,6 @@ List<FeatureStepType> requiredStepsFromConfig(RequiredFeatures rf) {
 
   if (rf.camera) steps.add(FeatureStepType.camera);
 
-  // your payload has gps + location
   if (rf.gps || rf.location) steps.add(FeatureStepType.gps);
 
   if (rf.nfc) steps.add(FeatureStepType.nfc);

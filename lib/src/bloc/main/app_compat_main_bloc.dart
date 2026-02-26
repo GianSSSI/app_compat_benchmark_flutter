@@ -20,11 +20,9 @@ class AppCompatMainBloc extends Bloc<AppCompatMainEvent, AppCompatMainState> {
   final PerformanceBloc performanceBloc;
   final InternetBloc internetBloc;
 
-  // NEW: built from config
   final DomainScorer domainScorer;
   final BenchmarkScorer performanceScorer;
 
-  // NEW: config sets (merged remote+defaults)
   final MainDomainScoresSet mainDomainScores;
   final FeatureSupportRequirementsSet featureSupportRequirements;
 
@@ -32,7 +30,7 @@ class AppCompatMainBloc extends Bloc<AppCompatMainEvent, AppCompatMainState> {
   late final StreamSubscription featureSub;
   late final StreamSubscription performanceSub;
   late final StreamSubscription internetSub;
-
+  static const bool kForceError = true;
   BenchmarkHandles? _handles;
 
   AppCompatMainBloc({
@@ -52,6 +50,9 @@ class AppCompatMainBloc extends Bloc<AppCompatMainEvent, AppCompatMainState> {
     on<FeatureSupportFinished>(_onFeatureDone);
     on<PerformanceFinished>(_onPerformanceDone);
     on<InternetFinished>(_onInternetDone);
+    on<BenchmarkFailed>(_onFailed);
+    on<CancelBenchmark>(_onCancel);
+    on<RestartBenchmark>(_onRestart);
 
     _listenToChildren();
   }
@@ -59,6 +60,15 @@ class AppCompatMainBloc extends Bloc<AppCompatMainEvent, AppCompatMainState> {
   void _listenToChildren() {
     deviceSub = deviceBloc.stream.listen((s) {
       debugPrint("BNCH [DeviceBloc] status=${s.status} msg=${s.message}");
+      if (s.status == DeviceAndOsStatus.error) {
+        add(
+          BenchmarkFailed(
+            message: s.message ?? 'Device & OS check failed',
+            stageAtFailure: BenchmarkStage.runningDevice,
+          ),
+        );
+        return;
+      }
       if (s.status == DeviceAndOsStatus.scored) {
         final score = DeviceAndOsDomainScore(
           domainScore: s.deviceAndOSScore ?? 0,
@@ -81,12 +91,22 @@ class AppCompatMainBloc extends Bloc<AppCompatMainEvent, AppCompatMainState> {
 
     featureSub = featureBloc.stream.listen((s) {
       debugPrint("BNCH [featureBloc] state=$s");
+
+      if (s is FeatureSupportError) {
+        add(
+          BenchmarkFailed(
+            message: s.message,
+            stageAtFailure: BenchmarkStage.runningFeatures,
+          ),
+        );
+        return;
+      }
       if (s is FeatureSupportScored) {
         add(
           FeatureSupportFinished(
             score: s.score,
             feautreSupportResults: s.results,
-            incompatible: s.score.isBlocked, // ✅ use scorer decision
+            incompatible: s.score.isBlocked,
           ),
         );
       }
@@ -94,8 +114,17 @@ class AppCompatMainBloc extends Bloc<AppCompatMainEvent, AppCompatMainState> {
 
     performanceSub = performanceBloc.stream.listen((s) {
       debugPrint("BNCH [performanceBloc] state=$s");
+
+      if (s is BenchmarkError) {
+        add(
+          BenchmarkFailed(
+            message: s.message,
+            stageAtFailure: BenchmarkStage.runningPerformance,
+          ),
+        );
+        return;
+      }
       if (s is BenchmarkCompleted) {
-        // ✅ Use injected performanceScorer (config-based)
         final stepScores = s.results.map(performanceScorer.scoreStep).toList();
         final overall = performanceScorer.scoreOverall(s.results);
 
@@ -111,6 +140,15 @@ class AppCompatMainBloc extends Bloc<AppCompatMainEvent, AppCompatMainState> {
     });
 
     internetSub = internetBloc.stream.listen((s) {
+      if (s is InternetCheckFailed) {
+        add(
+          BenchmarkFailed(
+            message: s.errorMessage,
+            stageAtFailure: BenchmarkStage.runningInternetCheck,
+          ),
+        );
+        return;
+      }
       if (s is InternetCheckSuccess) {
         add(InternetFinished(s.result));
       }
@@ -119,6 +157,16 @@ class AppCompatMainBloc extends Bloc<AppCompatMainEvent, AppCompatMainState> {
 
   void _start(StartFullBenchmark event, Emitter<AppCompatMainState> emit) {
     _handles = event.handles;
+
+    // if (kDebugMode && kForceError) {
+    //   add(
+    //     BenchmarkFailed(
+    //       message: 'TEST ERROR: start()',
+    //       stageAtFailure: BenchmarkStage.runningDevice,
+    //     ),
+    //   );
+    //   return;
+    // }
     emit(state.copyWith(stage: BenchmarkStage.runningDevice, message: null));
     deviceBloc.add(GetDeviceInformation());
   }
@@ -137,7 +185,6 @@ class AppCompatMainBloc extends Bloc<AppCompatMainEvent, AppCompatMainState> {
       ),
     );
 
-    // ✅ NEW: use typed RequiredFeatures -> steps list
     final requiredSteps = requiredStepsFromConfig(
       featureSupportRequirements.requiredFeatures,
     );
@@ -151,7 +198,6 @@ class AppCompatMainBloc extends Bloc<AppCompatMainEvent, AppCompatMainState> {
     FeatureSupportFinished event,
     Emitter<AppCompatMainState> emit,
   ) {
-    // ✅ DO NOT STOP — just record blocker and proceed
     final blocked = event.incompatible;
 
     emit(
@@ -206,6 +252,37 @@ class AppCompatMainBloc extends Bloc<AppCompatMainEvent, AppCompatMainState> {
         stage: BenchmarkStage.completed,
       ),
     );
+  }
+
+  void _onFailed(BenchmarkFailed e, Emitter<AppCompatMainState> emit) {
+    emit(
+      state.copyWith(
+        stage: BenchmarkStage.error,
+        errorMessage: e.message,
+        errorStackTrace: e.stackTrace,
+        failedStage: e.stageAtFailure,
+        message: e.message,
+      ),
+    );
+  }
+
+  void _onCancel(CancelBenchmark e, Emitter<AppCompatMainState> emit) {
+    emit(state.cleared());
+  }
+
+  void _onRestart(RestartBenchmark e, Emitter<AppCompatMainState> emit) {
+    final handles = _handles;
+    emit(state.cleared());
+    if (handles != null) {
+      add(StartFullBenchmark(handles: handles));
+    } else {
+      emit(
+        state.copyWith(
+          stage: BenchmarkStage.idle,
+          message: 'Cannot restart: missing benchmark handles.',
+        ),
+      );
+    }
   }
 
   @override

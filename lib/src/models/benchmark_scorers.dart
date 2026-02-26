@@ -18,19 +18,16 @@ class BenchmarkScorers {
     final deviceAndOsScorer = DeviceAndOsScorer(
       deviceAndOsRequirementsSet: cfg.deviceAndOs,
       deviceAndOsWeightsSet: cfg.deviceAndOs,
-      // scores set is app-only default (optional)
     );
 
     final featureSupportScorer = FeatureSupportScorer(
       featureSupportRequirementsSet: cfg.featureSupport,
       featureSupportWeightsSet: cfg.featureSupport,
-      // score set app-only default (optional)
     );
 
     final performanceScorer = BenchmarkScorer(
       performanceRequirements: cfg.performance,
       performanceWeights: cfg.performance,
-      // performanceScore app-only default (optional)
     );
 
     final domainScorer = DomainScorer(

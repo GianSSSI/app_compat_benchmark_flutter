@@ -32,10 +32,8 @@ class FeatureSupportBloc
         results.add(res);
       }
 
-      // Score once at the end (single source of truth)
       final score = scorer.calculate(List.unmodifiable(results));
 
-      // NOTE: scorer already checks hard blockers, but you might still want this flag for UI
       final hasHardBlocker = results.any(
         (r) => r.incompatible && r.stepType.isHardBlocker,
       );
@@ -49,7 +47,6 @@ class FeatureSupportBloc
       );
     } catch (e, st) {
       debugPrint("BNCH Error in Feature Support Bloc: $e\n$st");
-      // If we don't know which step failed, use a dummy or the last emitted step.
       emit(FeatureSupportError(e.toString(), FeatureStepType.camera));
     }
   }
@@ -60,11 +57,10 @@ class FeatureSupportBloc
         return runner.checkCamera();
 
       case FeatureStepType.gps:
-        // your old code uses checkLocation for gps
         return runner.checkLocation();
 
       case FeatureStepType.nfc:
-        return runner.checkNfc(); // ✅ add this method in runner if not present
+        return runner.checkNfc();
     }
   }
 }

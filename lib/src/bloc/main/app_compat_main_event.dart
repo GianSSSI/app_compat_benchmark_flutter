@@ -60,3 +60,26 @@ class InternetFinished extends AppCompatMainEvent {
   @override
   List<Object?> get props => [result];
 }
+
+class BenchmarkFailed extends AppCompatMainEvent {
+  final String message;
+  final String? stackTrace;
+  final BenchmarkStage stageAtFailure;
+
+  const BenchmarkFailed({
+    required this.message,
+    required this.stageAtFailure,
+    this.stackTrace,
+  });
+
+  @override
+  List<Object?> get props => [message, stackTrace, stageAtFailure];
+}
+
+class CancelBenchmark extends AppCompatMainEvent {
+  const CancelBenchmark();
+}
+
+class RestartBenchmark extends AppCompatMainEvent {
+  const RestartBenchmark();
+}

@@ -25,7 +25,6 @@ class DeviceAndOsBloc extends Bloc<DeviceAndOsEvent, DeviceAndOsState> {
     try {
       final deviceInfoResult = await runner.getDeviceInformation();
 
-      // If you want to immediately score after fetching:
       add(ScoreDevicenOS(deviceInfo: deviceInfoResult));
 
       emit(
@@ -116,10 +115,9 @@ class DeviceAndOsBloc extends Bloc<DeviceAndOsEvent, DeviceAndOsState> {
       );
 
       // --- RAM & Storage (weighted) ---
-      // ✅ ramGB expected → you already convert MB -> GB
+
       final ramGb = deviceInfo.availableRamMb / 1024;
 
-      // ✅ storageGB expected → convert MB -> GB (you were passing MB before)
       final storageGb = deviceInfo.availableMemoryMb / 1024;
 
       final ramScore = deviceAndOsScorer.scoreAvailableRamGb(ramGb: ramGb);
@@ -132,7 +130,6 @@ class DeviceAndOsBloc extends Bloc<DeviceAndOsEvent, DeviceAndOsState> {
         storage: storageScore,
       );
 
-      // --- Final Device & OS score ---
       final finalScore = deviceAndOsScorer.calculateDeviceAndOSScore(
         os: osScore,
         ramStorage: ramStorageScore,

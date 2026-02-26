@@ -1,4 +1,3 @@
-// lib/src/config/bloc/benchmark_config_state.dart
 part of 'benchmark_config_cubit.dart';
 
 class BenchmarkConfigState extends Equatable {
